@@ -128,9 +128,10 @@ All code runs in a single Jupyter notebook. Tested on Python 3.10+ and Google Co
 
 ## References
 
-Salminen, J. et al. (2023). How can algorithms help in segmenting users and customers? A systematic review and research agenda for algorithmic customer segmentation. Journal of Marketing Analytics. 
+Salminen, J., Mustak, M., Corporan, J., & Jansen, B.J. (2023). How can algorithms help in segmenting users and customers? A systematic review and research agenda for algorithmic customer segmentation. *Journal of Marketing Analytics, 11*, 438–467.
 
-Herhausen, D., Bernritter, S., Ngai, E.W.T., Kumar, A., & Delen, D. (2024). Machine learning in marketing: Recent progress and future research directions. Journal of Business Research, 170, Article 114254
+Herhausen, D., Bernritter, S., Ngai, E.W.T., Kumar, A., & Delen, D. (2024). Machine learning in marketing: Recent progress and future research directions. *Journal of Business Research, 170*, Article 114254.
+
 ---
 
 *Data source: U.S. Census Bureau, Current Population Survey, 1994–1995. UCI Machine Learning Repository. https://archive.ics.uci.edu/dataset/117/census+income+kdd*

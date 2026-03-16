@@ -18,26 +18,26 @@ Used together, the classifier answers *whether* to invest in a prospect; the seg
 ## Repository Structure
 
 ```
-Zhilin Chen - Take Home JPMC/
+census-income-targeting/
 ├── README.md
 ├── requirements.txt
-├── Income_Classification_and_Segmentation.ipynb
-├── Report.pdf
 ├── data/
-│   ├── census-bureau.data          # Raw data (not included — see below)
-│   └── census-bureau.columns      # Column names
-└── figures/
-    ├── fig1_label_distribution.png
-    ├── fig2_missing_values.png
-    ├── fig3_leakage_assessment.png
-    ├── fig4_high_income_by_variable.png
-    ├── figA_roc_curves.png
-    ├── figB_auc_comparison.png
-    ├── figC_confusion_matrix.png
-    ├── figD_feature_importance.png
-    └── figE_segments_pca.png
+│   └── census-bureau.columns      
+├── figures/
+│   ├── fig1_label_distribution.png
+│   ├── fig2_missing_values.png
+│   ├── fig3_leakage_assessment.png
+│   ├── fig4_high_income_by_variable.png
+│   ├── figA_roc_curves.png
+│   ├── figB_auc_comparison.png
+│   ├── figC_confusion_matrix.png
+│   ├── figD_feature_importance.png
+│   └── figE_segments_pca.png
+├── notebook/
+│   └── Income_Classification_and_Segmentation.ipynb
+└── report/
+    └── Census_Report.pdf
 ```
-
 ---
 
 ## Data

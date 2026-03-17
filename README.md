@@ -22,17 +22,18 @@ census-income-targeting/
 ├── README.md
 ├── requirements.txt
 ├── data/
-│   └── census-bureau.columns      
+│   └── census-bureau.columns
 ├── figures/
 │   ├── fig1_label_distribution.png
 │   ├── fig2_missing_values.png
 │   ├── fig3_leakage_assessment.png
-│   ├── fig4_high_income_by_variable.png
-│   ├── figA_roc_curves.png
-│   ├── figB_auc_comparison.png
+│   ├── fig4_behavioral_vs_demographic.png
+│   ├── figA_roc_pr_curves.png
+│   ├── figB_model_comparison.png
 │   ├── figC_confusion_matrix.png
 │   ├── figD_feature_importance.png
-│   └── figE_segments_pca.png
+│   ├── figE_shap_summary.png
+│   └── figE2_shap_bar.png
 ├── notebook/
 │   └── Income_Classification_and_Segmentation.ipynb
 └── report/

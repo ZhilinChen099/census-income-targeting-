@@ -107,21 +107,19 @@ Tested on Python 3.10+ and Google Colab.
 | Emerging Young Worker | 11,455 (12%) | 1.2% | Low-cost acquisition only |
 
 ---
-
 ## Key Design Decisions
 
-**Why AUC-PR alongside AUC-ROC:** With only 9.47% positive labels, AUC-ROC can be misleadingly optimistic — a model that rarely predicts high income can still achieve a high ROC score. AUC-PR (Average Precision) directly measures performance on the minority class, making it a more honest metric for imbalanced marketing data. XGBoost achieves AUC-PR of 0.674 vs. a random baseline of 0.095 (equal to the positive rate) — a 7x improvement. The optimal threshold of 0.807 was selected by maximizing F1 on the precision-recall curve.
+**AUC-PR as primary metric:** With 9.47% positive labels, AUC-ROC is misleadingly optimistic. AUC-PR directly measures minority class performance — XGBoost achieves 0.674 vs. a random baseline of 0.095. Threshold 0.807 selected by maximizing F1 on the precision-recall curve.
 
-**Why `tax_filer_stat` was dropped:** "Nonfiler" had 0% high-income rate — the column encodes income as a behavioral consequence, not an independent predictor. Including it inflates test performance while failing in deployment.
+**Leakage removal:** `tax_filer_stat` dropped — "Nonfiler" had 0% high-income rate, encoding income as a consequence rather than a predictor.
 
-**Why `sample_weight` matters:** Census surveys use stratified sampling. Without passing these weights to the model, predictions optimize for sample proportions rather than the true U.S. population distribution.
+**Census sample weights:** Passed to all models to reflect true U.S. population distribution, not sample proportions.
 
-**Why K=3 over K=4:** K=4 had a marginally higher silhouette score (0.3144 vs 0.3113) but produced a cluster of only 144 people — an artifact of `dividends_from_stocks` being 96% zero. After removing that variable and refitting, K=3 produces three balanced, interpretable personas.
+**K=3 over K=4:** K=4 silhouette (0.3144) was marginally higher but produced a 144-person micro-cluster — artifact of `dividends_from_stocks` being 96% zero. K=3 gives three balanced, interpretable personas.
 
-**Why OneHotEncoding for K-Means:** K-Means assumes Euclidean distance, which is not naturally suited for categorical variables. OneHotEncoding converts each category into binary dimensions, allowing distance computation. While an approximation, this is standard practice and produces interpretable results at this scale. Alternatives such as K-Modes or K-Prototypes were considered but rejected — K-Modes lacks silhouette score support in sklearn, and K-Prototypes introduces additional hyperparameters without clear benefit.
+**OneHotEncoding for K-Means:** K-Means uses Euclidean distance, which is not suited for categoricals. OneHotEncoding converts categories to binary dimensions as a standard approximation. K-Modes and K-Prototypes were considered but rejected due to sklearn compatibility and added hyperparameter complexity.
 
-**Why sex and race were excluded from segmentation:** Bias risk. These are strong predictors in the classifier, but applying them as segmentation dimensions would introduce discriminatory targeting. The income score already captures their predictive signal — segmentation uses behavioral and career variables only.
-
+**Sex and race excluded from segmentation:** Bias risk. Predictive signal is already captured by the income score — segmentation uses behavioral and career variables only.
 ---
 
 ## References

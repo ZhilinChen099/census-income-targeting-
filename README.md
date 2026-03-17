@@ -22,32 +22,23 @@ census-income-targeting/
 ├── README.md
 ├── requirements.txt
 ├── data/
-│   └── census-bureau.columns
+│   └── census-bureau.columns           # column names (raw data not included)
 ├── figures/
 │   ├── fig1_label_distribution.png
 │   ├── fig2_missing_values.png
 │   ├── fig3_leakage_assessment.png
 │   ├── fig4_behavioral_vs_demographic.png
-│   ├── figA_roc_pr_curves.png
+│   ├── figA_roc_pr_curves.png          # ROC + Precision-Recall curves
 │   ├── figB_model_comparison.png
 │   ├── figC_confusion_matrix.png
 │   ├── figD_feature_importance.png
-│   ├── figE_shap_summary.png
-│   └── figE2_shap_bar.png
+│   ├── figE_shap_summary.png           # SHAP summary plot
+│   └── figE2_shap_bar.png              # SHAP bar chart
 ├── notebook/
 │   └── Income_Classification_and_Segmentation.ipynb
 └── report/
     └── Census_Report.pdf
 ```
----
-
-## Data
-
-**Source:** U.S. Census Bureau, Current Population Survey 1994–1995  
-**Size:** 199,523 records × 40 variables + sampling weight + income label  
-**Label:** Binary — above or below $50k annual income  
-
-Place `census-bureau.data` and `census-bureau.columns` in the `data/` folder before running.
 
 ---
 
@@ -57,73 +48,79 @@ Place `census-bureau.data` and `census-bureau.columns` in the `data/` folder bef
 pip install -r requirements.txt
 ```
 
-All code runs in a single Jupyter notebook. Tested on Python 3.10+ and Google Colab.
+Tested on Python 3.10+ and Google Colab.
 
-> **Note for Colab users:** Most packages are pre-installed. You may only need `pip install xgboost`.
+> **Note for Colab users:** Most packages are pre-installed. You may only need `pip install xgboost shap`.
 
 ---
 
 ## Notebook Structure
 
-**1. Data Loading & EDA**
-- Label distribution (raw class imbalance: 6.21% high income)
-- Missing value analysis — four migration columns with ~50% missing values
+**Part I — Data Loading & EDA**
+- Label distribution: 6.21% high income — severe class imbalance
+- Missing value analysis: four migration columns (~50% missing) dropped
 - Leakage assessment: `tax_filer_stat` identified and removed
-- Variable separation analysis: asset ownership and education vs. demographic signals
+- Variable separation: asset ownership and education vs. demographic signals (Fig 4)
 
-**2. Preprocessing**
+**Part II — Preprocessing**
 - Drop columns: migration (50% missing), redundant detailed codes, leakage variable
-- Feature engineering: `weeks_worked` → 3 categories; binary flags for zero-inflated asset variables; education consolidated into 4 tiers
-- Imputation, label encoding, and sanity checks
-- `sample_weight` preserved separately for model training
+- Feature engineering:
+  - `weeks_worked_in_year` → 3 categories (none / partial / full)
+  - Binary flags for zero-inflated variables: `has_capital_gains`, `has_dividends_from_stocks`, etc.
+  - Education consolidated from 16 categories into 4 tiers
+- Census `sample_weight` preserved separately and passed to all models during training
+- Label Encoding for all categorical columns (appropriate for tree-based models)
 
-**3. Income Classification**
-- 80/20 stratified train/test split
-- Baselines: Logistic Regression, Random Forest
-- XGBoost with RandomizedSearchCV (30 combinations, 3-fold CV)
-- Threshold optimization via precision-recall curve → optimal threshold 0.807
-- Evaluation: AUC-ROC, confusion matrix, feature importance
+**Part III — Income Classification**
+- 80/20 stratified train/test split (preserves 9.47% positive rate)
+- Baselines: Logistic Regression (`class_weight='balanced'`), Random Forest (`balanced_subsample`)
+- XGBoost tuned via RandomizedSearchCV: 30 combinations, 3-fold StratifiedKFold, scored on AUC-ROC
+- Three simultaneous imbalance strategies: `sample_weight` + `balanced_subsample` + `scale_pos_weight=9.56`
+- Threshold optimization via precision-recall curve → optimal threshold 0.807 (max F1)
+- SHAP analysis for model interpretability (Figs E, E2)
 
-**4. Customer Segmentation**
-- Population: working-age adults 18–65 in the labor force (93,124 records)
-- Features aligned with classifier importance: age, weeks_worked, education, marital status, occupation type (sex and race excluded — bias risk)
-- K selection: silhouette score K=2 to K=7 → K=4 rejected (144-person micro-cluster), K=3 selected
+**Part IV — Customer Segmentation**
+- Population: working-age adults in the labor force (93,124 records)
+- Features aligned with classifier importance: age, weeks_worked, education, marital status, occupation type
+- Sex and race excluded — bias risk in marketing targeting
+- OneHotEncoding applied to categorical features before K-Means (Euclidean distance approximation)
+- K selection: silhouette score K=2 to K=7 → K=4 rejected (144-person micro-cluster artifact), K=3 selected
 - Cluster profiling and PCA visualization
-
-**5. Visualization**
-- All figures saved to `figures/` directory
 
 ---
 
 ## Key Results
 
-| Model | AUC-ROC |
-|---|---|
-| Logistic Regression | 0.863 |
-| Random Forest | 0.906 |
-| XGBoost (threshold = 0.807) | 0.927 |
+| Model | AUC-ROC | AUC-PR | Precision (>$50k) | Recall (>$50k) | F1 |
+|---|---|---|---|---|---|
+| Logistic Regression | 0.863 | 0.503 | 27% | 78% | 0.40 |
+| Random Forest | 0.906 | 0.588 | 33% | 80% | 0.47 |
+| XGBoost (default thr=0.5) | 0.927 | 0.674 | 37% | 83% | 0.51 |
+| XGBoost (optimized thr=0.807) | 0.927 | 0.674 | 61% | 61% | 0.61 |
 
-**At optimized threshold:** 61% precision, 6.4x lift over random baseline
+**At optimized threshold:** 6.4x lift over random baseline — per 10,000 prospects, 61% of flagged contacts are genuinely high-income vs. 9.47% at random.
 
-| Persona | Size | High-income rate | Priority |
+| Persona | Size | High-income rate | Marketing priority |
 |---|---|---|---|
-| Established Professional | 38,410 (41%) | 18.8% | Highest |
-| Ambitious Full-Timer | 43,259 (47%) | 8.6% | Medium |
-| Emerging Young Worker | 11,455 (12%) | 1.2% | Low-cost only |
+| Established Professional | 38,410 (41%) | 18.8% | Highest — premium campaigns |
+| Ambitious Full-Timer | 43,259 (47%) | 8.6% | Medium — aspirational messaging |
+| Emerging Young Worker | 11,455 (12%) | 1.2% | Low-cost acquisition only |
 
 ---
 
 ## Key Design Decisions
 
-**Why AUC-ROC over accuracy:** With 9.47% positive labels, a model predicting "low income" for everyone achieves 93.79% accuracy — completely useless for marketing.
+**Why AUC-PR alongside AUC-ROC:** With only 9.47% positive labels, AUC-ROC can be misleadingly optimistic — a model that rarely predicts high income can still achieve a high ROC score. AUC-PR (Average Precision) directly measures performance on the minority class, making it a more honest metric for imbalanced marketing data. XGBoost achieves AUC-PR of 0.674 vs. a random baseline of 0.095 (equal to the positive rate) — a 7x improvement. The optimal threshold of 0.807 was selected by maximizing F1 on the precision-recall curve.
 
-**Why `tax_filer_stat` was dropped:** "Nonfiler" had 0% high-income rate — the column encodes income as a behavioral consequence, not an independent predictor.
+**Why `tax_filer_stat` was dropped:** "Nonfiler" had 0% high-income rate — the column encodes income as a behavioral consequence, not an independent predictor. Including it inflates test performance while failing in deployment.
 
-**Why `sample_weight` matters:** Census surveys use stratified sampling. Without passing these weights to the model, predictions optimize for sample proportions rather than the true U.S. population.
+**Why `sample_weight` matters:** Census surveys use stratified sampling. Without passing these weights to the model, predictions optimize for sample proportions rather than the true U.S. population distribution.
 
-**Why K=3 over K=4:** K=4 had a marginally higher silhouette score (0.3144 vs 0.3113) but produced a cluster of only 144 people — an artifact of `dividends_from_stocks` being 96% zero.
+**Why K=3 over K=4:** K=4 had a marginally higher silhouette score (0.3144 vs 0.3113) but produced a cluster of only 144 people — an artifact of `dividends_from_stocks` being 96% zero. After removing that variable and refitting, K=3 produces three balanced, interpretable personas.
 
-**Why sex and race were excluded from segmentation:** Bias risk. The income classifier still captures their predictive signal; the segmentation model uses behavioral and career variables only.
+**Why OneHotEncoding for K-Means:** K-Means assumes Euclidean distance, which is not naturally suited for categorical variables. OneHotEncoding converts each category into binary dimensions, allowing distance computation. While an approximation, this is standard practice and produces interpretable results at this scale. Alternatives such as K-Modes or K-Prototypes were considered but rejected — K-Modes lacks silhouette score support in sklearn, and K-Prototypes introduces additional hyperparameters without clear benefit.
+
+**Why sex and race were excluded from segmentation:** Bias risk. These are strong predictors in the classifier, but applying them as segmentation dimensions would introduce discriminatory targeting. The income score already captures their predictive signal — segmentation uses behavioral and career variables only.
 
 ---
 

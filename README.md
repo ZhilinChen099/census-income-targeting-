@@ -109,17 +109,17 @@ Tested on Python 3.10+ and Google Colab.
 ---
 ## Key Design Decisions
 
-**AUC-PR as primary metric:** With 9.47% positive labels, AUC-ROC is misleadingly optimistic. AUC-PR directly measures minority class performance — XGBoost achieves 0.674 vs. a random baseline of 0.095. Threshold 0.807 selected by maximizing F1 on the precision-recall curve.
+**- AUC-PR as primary metric:** With 9.47% positive labels, AUC-ROC is misleadingly optimistic. AUC-PR directly measures minority class performance — XGBoost achieves 0.674 vs. a random baseline of 0.095. Threshold 0.807 selected by maximizing F1 on the precision-recall curve.
 
-**Leakage removal:** `tax_filer_stat` dropped — "Nonfiler" had 0% high-income rate, encoding income as a consequence rather than a predictor.
+**- Leakage removal:** `tax_filer_stat` dropped — "Nonfiler" had 0% high-income rate, encoding income as a consequence rather than a predictor.
 
-**Census sample weights:** Passed to all models to reflect true U.S. population distribution, not sample proportions.
+**- Census sample weights:** Passed to all models to reflect true U.S. population distribution, not sample proportions.
 
-**K=3 over K=4:** K=4 silhouette (0.3144) was marginally higher but produced a 144-person micro-cluster — artifact of `dividends_from_stocks` being 96% zero. K=3 gives three balanced, interpretable personas.
+**- K=3 over K=4:** K=4 silhouette (0.3144) was marginally higher but produced a 144-person micro-cluster — artifact of `dividends_from_stocks` being 96% zero. K=3 gives three balanced, interpretable personas.
 
-**OneHotEncoding for K-Means:** K-Means uses Euclidean distance, which is not suited for categoricals. OneHotEncoding converts categories to binary dimensions as a standard approximation. K-Modes and K-Prototypes were considered but rejected due to sklearn compatibility and added hyperparameter complexity.
+**- OneHotEncoding for K-Means:** K-Means uses Euclidean distance, which is not suited for categoricals. OneHotEncoding converts categories to binary dimensions as a standard approximation. K-Modes and K-Prototypes were considered but rejected due to sklearn compatibility and added hyperparameter complexity.
 
-**Sex and race excluded from segmentation:** Bias risk. Predictive signal is already captured by the income score — segmentation uses behavioral and career variables only.
+**- Sex and race excluded from segmentation:** Bias risk. Predictive signal is already captured by the income score — segmentation uses behavioral and career variables only.
 ---
 
 ## References
